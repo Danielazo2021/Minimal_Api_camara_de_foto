@@ -8,7 +8,7 @@ DateTime? lastCapture = null;
     return Task.Run(() =>
     {
         Log.Information("Inicializando camara..");
-        captureStream = new VideoCapture(0); // 0 es la camara pordefecto
+        captureStream = new VideoCapture(0); // 0 es la camara por defecto
         captureStream.Start();
         Log.Information("Captura Iniciada");
 
@@ -16,10 +16,10 @@ DateTime? lastCapture = null;
 }
 
 
-async Task<byte[]> GetFrame()
+async Task<byte[]> GetFrame( bool small= false)
 {
     Log.Information("Captura requerida");
-    var frame = captureStream.QueryFrame();
+    var frame = small? captureStream.QuerySmallFrame() : captureStream.QueryFrame(); // operador ternario
     Log.Debug("Frame Capturado");
     lastCapture= DateTime.Now;
     var tempFile = "temp.jpg";
@@ -65,7 +65,7 @@ app.MapGet("/weatherforecast", () =>
 
 _ = Warm();
 
-app.Map("/", () => new
+app.MapGet("/", () => new
 {
     LastCapture = lastCapture
 });
@@ -73,6 +73,12 @@ app.Map("/", () => new
 app.Map("/Frame", async () =>
 {
     var content = await GetFrame();
+    return Results.File(content, "image/jpeg");
+});
+
+app.Map("/FrameSmall", async () =>
+{
+    var content = await GetFrame(true);
     return Results.File(content, "image/jpeg");
 });
 
